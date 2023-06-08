@@ -27,24 +27,40 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
    
-    const classCollections=client.db("summerDB").collection("classes")
-    const instructorCollections=client.db("summerDB").collection("instructors")
+    const classesCollection=client.db("summerDB").collection("classes")
+    const instructorsCollection=client.db("summerDB").collection("instructors")
+    const usersCollection=client.db("summerDB").collection("users")
 
-    // classes collections 
+    // classes apis
 
 
     app.get("/courses",async(req,res)=>{
      
-       const result=await classCollections.find().sort({enroll_student:-1}).limit(6).toArray()
+       const result=await classesCollection.find().sort({enroll_student:-1}).limit(6).toArray()
        res.send(result)
 
     })
 
-    //instructor collections
+    //instructor apis
     app.get("/instructors",async(req,res)=>{
-      const result=await instructorCollections.find().limit(6).toArray()
+      const result=await instructorsCollection.find().limit(6).toArray()
       res.send(result)
 
+   })
+
+   // users apis
+
+   app.post("/users",async(req,res)=>{
+     const user=req.body;
+     const result=await usersCollection.insertOne(user);
+     const query={email:user.email}
+     const existingUser=await usersCollection.findOne(query)
+     console.log("existing user",existingUser)
+     if(existingUser)
+     {
+      return res.send({message:"User Already Exists"})
+     }
+     res.send(result)
    })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
