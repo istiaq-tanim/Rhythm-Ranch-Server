@@ -34,13 +34,49 @@ async function run() {
     // classes apis
 
 
-    app.get("/courses",async(req,res)=>{
+    app.get("/popularCourses",async(req,res)=>{
      
        const result=await classesCollection.find().sort({enroll_student:-1}).limit(6).toArray()
        res.send(result)
 
     })
 
+    app.get("/courses",async(req,res)=>{
+      const result=await classesCollection.find().toArray()
+      res.send(result)
+
+   })
+
+    app.post("/courses",async(req,res)=>{
+      const addCourses=req.body;
+      const result=await classesCollection.insertOne(addCourses)
+      res.send(result)
+    })
+
+    app.patch("/courses/:id",async(req,res)=>{
+      const id=req.params.id 
+      const query={_id:new ObjectId(id)}
+      const updateDoc = {
+       $set: {
+         status: "approved"
+       }
+     };
+     const result=await classesCollection.updateOne(query,updateDoc)
+     res.send(result)
+    })
+   
+
+    app.patch("/courses/deny/:id",async(req,res)=>{
+      const id=req.params.id 
+      const query={_id:new ObjectId(id)}
+      const updateDoc = {
+       $set: {
+         status: "denied"
+       }
+     };
+     const result=await classesCollection.updateOne(query,updateDoc)
+     res.send(result)
+    })
     //instructor apis
     app.get("/instructors",async(req,res)=>{
       const result=await instructorsCollection.find().limit(6).toArray()
@@ -69,7 +105,13 @@ async function run() {
      const result=await usersCollection.find().toArray()
      res.send(result)
    })
-
+   
+   app.get("/users/:email",async(req,res)=>{
+    const email=req.params.email;
+    const query = { email: email }
+    const result=await usersCollection.findOne(query)
+    res.send(result)
+   })
    app.patch("/users/admin/:id",async(req,res)=>{
      const id=req.params.id 
      const query={_id:new ObjectId(id)}
