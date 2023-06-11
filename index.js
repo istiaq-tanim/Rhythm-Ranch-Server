@@ -28,8 +28,8 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const classesCollection = client.db("summerDB").collection("classes")
-    const instructorsCollection = client.db("summerDB").collection("instructors")
     const usersCollection = client.db("summerDB").collection("users")
+    const cartCollection = client.db("summerDB").collection("carts")
 
     // classes apis
 
@@ -168,6 +168,26 @@ async function run() {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
       const result = await usersCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    // cart apis
+
+    app.get("/carts",async(req,res)=>{
+      const email=req.query.email;
+      if(!email)
+      {
+        return res.send([])
+      }
+      const query={ email : email}
+      const result=await cartCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    app.post("/carts",async(req,res)=>
+    {
+      const cart=req.body;
+      const result=await cartCollection.insertOne(cart)
       res.send(result)
     })
     await client.db("admin").command({ ping: 1 });
