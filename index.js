@@ -101,14 +101,9 @@ async function run() {
        const result=await classesCollection.find(query).toArray()
        res.send(result)
     })
-    //instructor apis
-    app.get("/instructors", async (req, res) => {
-      const result = await instructorsCollection.find().limit(6).toArray()
-      res.send(result)
+   
 
-    })
-
-
+   
 
     // users apis
 
@@ -160,7 +155,13 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc)
       res.send(result)
     })
-
+   
+    app.get("/instructor/:role",async(req,res)=>{
+      const role=req.params.role;
+      const query={role:role}
+      const result=await usersCollection.find(query).toArray()
+      res.send(result)
+    })
 
 
     app.delete("/users/:id", async (req, res) => {
