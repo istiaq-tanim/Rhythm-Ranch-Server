@@ -32,6 +32,7 @@ async function run() {
     const usersCollection = client.db("summerDB").collection("users")
     const cartCollection = client.db("summerDB").collection("carts")
     const paymentCollection = client.db("summerDB").collection("payments")
+    const enrollCollection = client.db("summerDB").collection("enrolls")
 
     // classes apis
 
@@ -216,10 +217,47 @@ async function run() {
 
     // payment api created
 
-    app.post("/payments",async(req,res)=>{
-       const payment=req.body;
-       const result=await paymentCollection.insertOne(payment)
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      console.log(req.body)
+      const result = await paymentCollection.insertOne(payment)
+      const itemId = payment.class_id;
+      const email = payment.email
+      const query = { class_id: itemId, email: email };
+
+      const enrollClass=await cartCollection.findOne(query)
+
+      const enrolledClass=await enrollCollection.insertOne(enrollClass)
+
+      const deleteResult = await cartCollection.deleteOne(query);
+      if (deleteResult.deletedCount > 0) {
+        const updateResult = await classesCollection.updateOne(
+          { _id: new ObjectId(itemId) },
+          {
+            $inc: {
+              available_set: -1, enroll_student: 1
+            }
+          }
+        );
+        res.send({ result, deleteResult, updateResult , enrolledClass})
+      }
+
+    })
+    
+    app.get("/paymentHistory",async(req,res)=>{
+       const email=req.query.email;
+       const query={email:email}
+       const result=await paymentCollection.find(query).sort({ date: -1 }).toArray()
        res.send(result)
+    })
+
+    //enrolls api
+
+    app.get("/enroll/:email",async(req,res)=>{
+      const email=req.params.email;
+      const query={email:email}
+      const result=await enrollCollection.find(query).toArray()
+      res.send(result)
     })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
