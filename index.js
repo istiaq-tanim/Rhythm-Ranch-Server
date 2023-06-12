@@ -2,9 +2,10 @@ const express = require('express')
 const cors = require('cors');
 const app = express()
 
+
 require('dotenv').config()
 const port = process.env.PORT || 5000;
-
+const stripe = require("stripe")("sk_test_51NEZAfHvJD5yKaqm2WPRS4xsJgLABv05GevLiiX54kyFT2uq2ddj1qwIlbwYzP5Ls5mNyb8PzBr39HhOg797jEb1002AUPqZB8")
 app.use(cors());
 app.use(express.json());
 
@@ -89,21 +90,21 @@ async function run() {
       };
       const result = await classesCollection.updateOne(query, updateDoc)
       res.send(result)
-      
+
     })
 
-    app.get("/instructorClasses",async(req,res)=>{
-       const email=req.query.email
-       if (!email) {
+    app.get("/instructorClasses", async (req, res) => {
+      const email = req.query.email
+      if (!email) {
         res.send([]);
       }
-       const query={email:email}
-       const result=await classesCollection.find(query).toArray()
-       res.send(result)
+      const query = { email: email }
+      const result = await classesCollection.find(query).toArray()
+      res.send(result)
     })
-   
 
-   
+
+
 
     // users apis
 
@@ -155,11 +156,11 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc)
       res.send(result)
     })
-   
-    app.get("/instructor/:role",async(req,res)=>{
-      const role=req.params.role;
-      const query={role:role}
-      const result=await usersCollection.find(query).toArray()
+
+    app.get("/instructor/:role", async (req, res) => {
+      const role = req.params.role;
+      const query = { role: role }
+      const result = await usersCollection.find(query).toArray()
       res.send(result)
     })
 
@@ -173,29 +174,43 @@ async function run() {
 
     // cart apis
 
-    app.get("/carts",async(req,res)=>{
-      const email=req.query.email;
-      if(!email)
-      {
+    app.get("/carts", async (req, res) => {
+      const email = req.query.email;
+      if (!email) {
         return res.send([])
       }
-      const query={ email : email}
-      const result=await cartCollection.find(query).toArray()
+      const query = { email: email }
+      const result = await cartCollection.find(query).toArray()
       res.send(result)
     })
 
-    app.post("/carts",async(req,res)=>
-    {
-      const cart=req.body;
-      const result=await cartCollection.insertOne(cart)
+    app.post("/carts", async (req, res) => {
+      const cart = req.body;
+      const result = await cartCollection.insertOne(cart)
       res.send(result)
     })
 
-    app.delete("/carts/:id",async(req,res)=>{
-      const id=req.params.id;
-      const filter={_id:new ObjectId(id)}
-      const result=await cartCollection.deleteOne(filter)
+    app.delete("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const result = await cartCollection.deleteOne(filter)
       res.send(result)
+    })
+
+    // payment intent
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body
+      const amount = price * 100;
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"]
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+
     })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
