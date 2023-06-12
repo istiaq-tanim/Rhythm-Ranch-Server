@@ -31,6 +31,7 @@ async function run() {
     const classesCollection = client.db("summerDB").collection("classes")
     const usersCollection = client.db("summerDB").collection("users")
     const cartCollection = client.db("summerDB").collection("carts")
+    const paymentCollection = client.db("summerDB").collection("payments")
 
     // classes apis
 
@@ -212,12 +213,21 @@ async function run() {
       });
 
     })
+
+    // payment api created
+
+    app.post("/payments",async(req,res)=>{
+       const payment=req.body;
+       const result=await paymentCollection.insertOne(payment)
+       res.send(result)
+    })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
+
 }
 run().catch(console.dir);
 
