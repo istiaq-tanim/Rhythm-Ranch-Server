@@ -43,7 +43,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
 
     const classesCollection = client.db("summerDB").collection("classes")
@@ -165,6 +165,18 @@ async function run() {
       const result = await usersCollection.findOne(query)
       res.send(result)
     })
+
+    app.get('/users/admin/:email', verifyJWTToken, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.data.email !== email) {
+        res.send({ admin: false })
+      }
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === 'admin' }
+      res.send(result);
+    })
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
@@ -175,6 +187,18 @@ async function run() {
       };
       const result = await usersCollection.updateOne(query, updateDoc)
       res.send(result)
+    })
+     app.get('/users/instructor/:email', verifyJWTToken, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.data.email !== email) {
+        res.send({ instructor: false })
+      }
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { instructor: user?.role === 'instructor' }
+      console.log(result)
+      res.send(result);
     })
 
     app.patch("/users/instructor/:id", async (req, res) => {
